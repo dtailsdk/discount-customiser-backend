@@ -11,7 +11,8 @@ export async function deleteShopData(shop) {
 
 export function getAppScopes() {
   return [
-    'read_products',
+    'write_discounts',
+    'read_discounts'
   ]
 }
 

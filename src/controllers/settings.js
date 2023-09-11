@@ -1,7 +1,11 @@
 import { Server } from '@dtails/toolbox-backend'
+import { updateSettings, getSettings } from '../lib/settings-service'
 
 async function get(req, res) {
+  console.log('hello???')
   const dbShop = req.shopFromToken
+  console.log('going to get settings')
+  await getSettings(dbShop)
   return res.send({
     enabled: true,
     cartMinimum: '345.75',
@@ -11,7 +15,12 @@ async function get(req, res) {
 
 async function post(req, res) {
   const dbShop = req.shopFromToken
-  return res.send(req.body)
+  const validation = await updateSettings(dbShop, req.body)
+  console.log('validation', validation)
+  if (validation.valid) {
+    return res.send(req.body)
+  }
+  return res.status(400).send(validation)
 }
 
 async function ping(req, res) {
@@ -25,7 +34,7 @@ export default function init(shopifyOAuth) {
   router
     .route('/')
     .get(shopifyOAuth.withAuthorizedShop(), get)
-    .post(shopifyOAuth.withAuthorizedShop(), post)
+    .put(shopifyOAuth.withAuthorizedShop(), post)
     .all(Server.middleware.methodNotAllowed)
 
   router
