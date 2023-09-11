@@ -1,0 +1,62 @@
+{
+  "name": "discount-customiser-backend",
+  "version": "0.0.1",
+  "description": "The backend for a Shopify public app",
+  "scripts": {
+    "dev": "nodemon --watch .env --watch knexfile.js --watch .babelrc --watch package.json --watch src src/server.js --exec babel-node",
+    "build": "babel src -d dist",
+    "validate-webhooks-job": "npm run build && NODE_ENV=production node dist/scheduled-tasks/validate-webhooks-job.js",
+    "migrate:latest": "babel-node ./node_modules/.bin/knex migrate:latest",
+    "migrate:rollback": "babel-node ./node_modules/.bin/knex migrate:rollback",
+    "migrate:make": "babel-node ./node_modules/.bin/knex migrate:make",
+    "seed:run": "babel-node ./node_modules/.bin/knex seed:run",
+    "seed:make": "babel-node ./node_modules/.bin/knex seed:make",
+    "start-web": "npm run build && NODE_ENV=production node dist/server.js",
+    "start-task": "npm run build && NODE_ENV=production node dist/task.js",
+    "db:create": "createdb discount_customiser",
+    "db:drop": "dropdb discount_customiser",
+    "db:reset": "npm-run-all db:drop db:create migrate:latest seed:run",
+    "test": "ava --watch | tap-difflet",
+    "testonce": "ava | tap-difflet"
+  },
+  "ava": {
+    "sources": "src/**/*.js",
+    "files": "test/**/*.js",
+    "tap": true,
+    "require": "babel-register",
+    "babel": {
+      "testOptions": {
+        "babelrc": false,
+        "configFile": false
+      }
+    }
+  },
+  "author": "dtails Sysadmin",
+  "license": "ISC",
+  "dependencies": {
+    "@dtails/shopify-api": "^0.3.0",
+    "@dtails/toolbox-backend": "^0.0.25",
+    "@sentry/node": "^7.68.0",
+    "@shopify/app": "^3.48.1",
+    "@shopify/cli": "^3.48.1",
+    "axios": "^1.2.5",
+    "babel-cli": "6.26.0",
+    "babel-plugin-module-resolver": "2.7.1",
+    "babel-plugin-syntax-class-properties": "6.13.0",
+    "babel-plugin-transform-class-properties": "6.24.1",
+    "babel-plugin-transform-object-rest-spread": "6.26.0",
+    "babel-preset-env": "1.6.0",
+    "boom": "^7.3.0",
+    "crypto": "^1.0.1",
+    "moment": "^2.25.3",
+    "nodemailer": "^6.4.6",
+    "nodemailer-postmark-transport": "^3.0.0",
+    "shopify-api-node": "^3.12.2",
+    "uuid": "^7.0.3"
+  },
+  "devDependencies": {
+    "ava": "^1.2.0",
+    "nodemon": "1.11.0",
+    "tap-difflet": "^0.7.1"
+  }
+}
