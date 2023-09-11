@@ -1,11 +1,17 @@
 import { Server } from '@dtails/toolbox-backend'
-import { getInstalledShop } from '../lib/shop-service'
 
-//Service that does not require authorization used to decide whether to start OAuth flow for shops where app is not installed yet
-async function getShop(req, res) {
-  const dbShopName = req.query.shop.replace('.myshopify.com', '')
-  const shopState = await getInstalledShop(dbShopName)
-  return res.send(shopState)
+async function get(req, res) {
+  const dbShop = req.shopFromToken
+  return res.send({
+    enabled: true,
+    cartMinimum: '345.75',
+    discountPercentage: '15'
+  })
+}
+
+async function post(req, res) {
+  const dbShop = req.shopFromToken
+  return res.send(req.body)
 }
 
 async function ping(req, res) {
@@ -18,7 +24,8 @@ export default function init(shopifyOAuth) {
 
   router
     .route('/')
-    .get(getShop)
+    .get(shopifyOAuth.withAuthorizedShop(), get)
+    .post(shopifyOAuth.withAuthorizedShop(), post)
     .all(Server.middleware.methodNotAllowed)
 
   router
