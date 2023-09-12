@@ -2,15 +2,9 @@ import { Server } from '@dtails/toolbox-backend'
 import { updateSettings, getSettings } from '../lib/settings-service'
 
 async function get(req, res) {
-  console.log('hello???')
   const dbShop = req.shopFromToken
-  console.log('going to get settings')
-  await getSettings(dbShop)
-  return res.send({
-    enabled: true,
-    cartMinimum: '345.75',
-    discountPercentage: '15'
-  })
+  const dbSettings = await getSettings(dbShop)
+  return res.send(dbSettings)
 }
 
 async function post(req, res) {

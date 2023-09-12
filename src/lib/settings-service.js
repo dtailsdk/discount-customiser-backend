@@ -1,4 +1,4 @@
-import { ShopifyToken } from 'models'
+import { Settings } from 'models'
 import { createDiscountFunction } from './shopify-api/functions'
 import { updateMetafield, getPrivateMetafields } from './shopify-api/metafields'
 
@@ -7,26 +7,32 @@ export const MINIMUM_CART_METAFIELD_KEY = 'cart_minimum'
 export const DISCOUNT_METAFIELD_KEY = 'discount_percentage'
 
 export async function getSettings(dbShop) {
-  const privateMetafields = await getPrivateMetafields(dbShop.api(), dbShop.discountId)
-  console.log('privateMetafields', JSON.stringify(privateMetafields, null, 2))
+  let dbSettings = await Settings.q.findOne({ shopifyTokenId: dbShop.id })
+  if (!dbSettings) {
+    dbSettings = await Settings.q.insert({
+      shopifyTokenId: dbShop.id,
+      cartMinimum: 0,
+      discountPercentage: 0,
+    })
+  }
+  return dbSettings
 }
 
 export async function updateSettings(dbShop, settings) {
   const validation = validateSettings(settings)
-  console.log('validation', validation)
+  let dbSettings = await Settings.q.findOne({ shopifyTokenId: dbShop.id })
   if (validation.valid) {
-    console.log('Input was valid')
-    if (dbShop.discountId) {
+    if (dbSettings.shopifyDiscountId) {
       const metafields = [
         {
-          ownerId: dbShop.discountId,
+          ownerId: dbSettings.shopifyDiscountId,
           key: MINIMUM_CART_METAFIELD_KEY,
           namespace: METAFIELD_NAMESPACE,
           type: 'number_integer',
           value: settings.cartMinimum
         },
         {
-          ownerId: dbShop.discountId,
+          ownerId: dbSettings.shopifyDiscountId,
           key: DISCOUNT_METAFIELD_KEY,
           namespace: METAFIELD_NAMESPACE,
           type: 'number_integer',
@@ -52,13 +58,13 @@ export async function updateSettings(dbShop, settings) {
         }
       ]
       const automaticDiscount = await createDiscountFunction(dbShop.api(), metafields)
-      console.log('automaticDiscount', automaticDiscount)
-      await ShopifyToken.q.update({ discountId: automaticDiscount.discountId }).where({ id: dbShop.id })
+      await Settings.q.update({ shopifyDiscountId: automaticDiscount.discountId }).where({ id: dbSettings.id })
     }
-    console.log('updated')
+    await Settings.q.update({ cartMinimum: parseInt(settings.cartMinimum), discountPercentage: parseInt(settings.discountPercentage) }).where({ id: dbSettings.id })
+
     return validation
   } else {
-    console.log('Input was not valid')
+    console.log('Input was not valid', validation)
     return validation
   }
 }
