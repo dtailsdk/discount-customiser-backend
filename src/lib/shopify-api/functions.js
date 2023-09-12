@@ -14,7 +14,6 @@ export async function createDiscountFunction(shopifyApi, metafields) {
       startsAt: '2023-09-01T00:00:00'
     }
   }
-  console.log('input', JSON.stringify(input, null, 2))
   const query = `mutation discountAutomaticAppCreate($automaticAppDiscount: DiscountAutomaticAppInput!) {
     discountAutomaticAppCreate(automaticAppDiscount: $automaticAppDiscount) {
       automaticAppDiscount {
@@ -28,12 +27,39 @@ export async function createDiscountFunction(shopifyApi, metafields) {
   }
   `
   const result = await shopifyApi.runQuery(query, input)
-  console.log('result', JSON.stringify(result, null, 2))
   if (result.discountAutomaticAppCreate.userErrors.length > 0) {
     console.error(`\n\nAn error occurred when trying to create discount function in Shopify: ${JSON.stringify(result.discountAutomaticAppCreate.userErrors)}\n\nquery: ${query}\n\ninput: ${JSON.stringify(input)}\n\n`)
     throw new Error(result.discountAutomaticAppCreate.userErrors)
   }
   return result.discountAutomaticAppCreate.automaticAppDiscount
+}
+
+export async function getDiscountFunction(shopifyApi, discountNodeId) {
+  const query = `query {
+    discountNode(id: "${discountNodeId}") {
+      id
+      discount {
+        __typename
+        ... on DiscountAutomaticApp {
+          status
+          title
+        }
+      }
+      metafields(first: 10) {
+        edges {
+          node {
+            id
+            key
+            namespace
+            value
+          }
+        }
+      }
+    }
+  }
+  `
+  const result = await shopifyApi.runQuery(query)
+  return result.discountNode
 }
 
 export async function updateDiscountFunction(shopifyApi, id, cartMinimum, discountPercentage) {

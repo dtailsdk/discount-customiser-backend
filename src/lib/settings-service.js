@@ -1,21 +1,27 @@
 import { Settings } from 'models'
-import { createDiscountFunction } from './shopify-api/functions'
-import { updateMetafield, getPrivateMetafields } from './shopify-api/metafields'
+import { createDiscountFunction, getDiscountFunction } from './shopify-api/functions'
+import { updateMetafield } from './shopify-api/metafields'
 
-export const METAFIELD_NAMESPACE = '$app:dtails'
+export const METAFIELD_NAMESPACE = 'dtails'
 export const MINIMUM_CART_METAFIELD_KEY = 'cart_minimum'
 export const DISCOUNT_METAFIELD_KEY = 'discount_percentage'
 
 export async function getSettings(dbShop) {
   let dbSettings = await Settings.q.findOne({ shopifyTokenId: dbShop.id })
-  if (!dbSettings) {
-    dbSettings = await Settings.q.insert({
+  const settings = {
+    cartMinimum: 0,
+    discountPercentage: 0,
+  }
+  if (dbSettings && dbSettings.shopifyDiscountId) {
+    const discountFunction = await getDiscountFunction(dbShop.api(), dbSettings.shopifyDiscountId)
+    settings.cartMinimum = discountFunction.metafields.filter(field => field.key == MINIMUM_CART_METAFIELD_KEY)[0].value
+    settings.discountPercentage = discountFunction.metafields.filter(field => field.key == DISCOUNT_METAFIELD_KEY)[0].value
+  } else {
+    await Settings.q.insert({
       shopifyTokenId: dbShop.id,
-      cartMinimum: 0,
-      discountPercentage: 0,
     })
   }
-  return dbSettings
+  return settings
 }
 
 export async function updateSettings(dbShop, settings) {
@@ -60,7 +66,6 @@ export async function updateSettings(dbShop, settings) {
       const automaticDiscount = await createDiscountFunction(dbShop.api(), metafields)
       await Settings.q.update({ shopifyDiscountId: automaticDiscount.discountId }).where({ id: dbSettings.id })
     }
-    await Settings.q.update({ cartMinimum: parseInt(settings.cartMinimum), discountPercentage: parseInt(settings.discountPercentage) }).where({ id: dbSettings.id })
 
     return validation
   } else {
