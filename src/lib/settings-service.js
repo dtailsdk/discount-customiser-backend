@@ -12,10 +12,12 @@ export async function getSettings(dbShop) {
     cartMinimum: 0,
     discountPercentage: 0,
   }
-  if (dbSettings && dbSettings.shopifyDiscountId) {
-    const discountFunction = await getDiscountFunction(dbShop.api(), dbSettings.shopifyDiscountId)
-    settings.cartMinimum = discountFunction.metafields.filter(field => field.key == MINIMUM_CART_METAFIELD_KEY)[0].value
-    settings.discountPercentage = discountFunction.metafields.filter(field => field.key == DISCOUNT_METAFIELD_KEY)[0].value
+  if (dbSettings) {
+    if (dbSettings.shopifyDiscountId) {
+      const discountFunction = await getDiscountFunction(dbShop.api(), dbSettings.shopifyDiscountId)
+      settings.cartMinimum = discountFunction.metafields.filter(field => field.key == MINIMUM_CART_METAFIELD_KEY)[0].value
+      settings.discountPercentage = discountFunction.metafields.filter(field => field.key == DISCOUNT_METAFIELD_KEY)[0].value
+    }
   } else {
     await Settings.q.insert({
       shopifyTokenId: dbShop.id,
