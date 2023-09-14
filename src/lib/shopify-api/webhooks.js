@@ -11,7 +11,7 @@ export async function createWebhook(shopifyApi, input) {
       }
     }
   }`
-  const result = await shopifyApi.graphql(query, createWebhookInput)
+  const result = await shopifyApi.runQuery(query, createWebhookInput)
   if (result.webhookSubscriptionCreate.userErrors.length > 0) {
     console.error(`\n\nAn error occurred when trying to create webhook in Shopify: ${JSON.stringify(result.webhookSubscriptionCreate.userErrors)}\n\nquery: ${query}\n\ninput: ${JSON.stringify(createWebhookInput)}\n\n`)
     throw new Error(result.webhookSubscriptionCreate.userErrors)
@@ -29,7 +29,7 @@ export async function getWebhooks(shopifyApi) {
       }
     }
   }`
-  const result = await shopifyApi.graphql(query)
+  const result = await shopifyApi.runQuery(query)
   return result.webhookSubscriptions.edges
 }
 
