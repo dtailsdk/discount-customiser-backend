@@ -5,6 +5,7 @@ import { ShopifyToken } from 'models'
 import { createWebhook, getWebhooks, deleteWebhook } from './shopify-api/webhooks'
 
 export async function validateWebhooks(dbShop) {
+  console.log(`Going to validate webhooks for shop ${dbShop.shop}`)
   const appWebhooks = [
     { topic: 'APP_UNINSTALLED', webhookSubscription: { callbackUrl: getEnvironment('SERVER_URL') + '/app/webhooks/app_uninstalled' } },
   ]
