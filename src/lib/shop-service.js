@@ -38,5 +38,6 @@ function getShopForApp(dbShop, dbShopName) {
       name: dbShopName
     },
     showSetupInstructions: dbShop ? dbShop.showSetupInstructions : false,
+    isValidPayment: dbShop ? dbShop.isValidPayment : false,
   }
 }
