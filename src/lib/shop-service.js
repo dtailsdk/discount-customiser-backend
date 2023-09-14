@@ -1,4 +1,5 @@
 import { ShopifyToken } from 'models'
+import { getEnvironment } from '@dtails/toolbox-backend'
 
 export function getAppRootUrl(shopName) {
   return 'https://' + shopName + '.myshopify.com/admin/apps/' + getEnvironment('SHOPIFY_APP_NAME')
