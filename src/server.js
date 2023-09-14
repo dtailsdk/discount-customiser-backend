@@ -55,7 +55,7 @@ if (sentryDSN) {
 }
 
 Server.listen()
-
+Server.use(Server.express.static(`${__dirname}/../public`))
 Server.useNotFound()
 
 if (sentryDSN) {
