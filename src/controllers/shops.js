@@ -25,10 +25,6 @@ export default function init(shopifyOAuth) {
   router
     .route('/')
     .get(get)
-    .all(Server.middleware.methodNotAllowed)
-
-  router
-    .route('/her')
     .put(shopifyOAuth.withAuthorizedShop(), put)
     .all(Server.middleware.methodNotAllowed)
 
