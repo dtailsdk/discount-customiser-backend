@@ -20,10 +20,10 @@ export async function getInstalledShop(dbShopName) {
   const dbShop = await ShopifyToken.q.findOne({ shop: dbShopName })
   const scopesUpdated = dbShop && dbShop.scope == getAppScopes().join(',')
   if (!scopesUpdated) {
-    log(`Scopes are NOT up to date for shop ${dbShopName} - going to request confirmation of new scopes`)
+    console.log(`Scopes are NOT up to date for shop ${dbShopName} - going to request confirmation of new scopes`)
   }
   const shop = getShopForApp(dbShop, dbShopName)
-  shop.appInstalled = (dbShop && scopesUpdated) ? true : false
+  shop.appInstalled = dbShop && scopesUpdated
   return shop
 }
 
