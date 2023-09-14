@@ -14,7 +14,7 @@ export async function createWebhook(shopifyApi, input) {
   const result = await shopifyApi.runQuery(query, createWebhookInput)
   if (result.webhookSubscriptionCreate.userErrors.length > 0) {
     console.error(`\n\nAn error occurred when trying to create webhook in Shopify: ${JSON.stringify(result.webhookSubscriptionCreate.userErrors)}\n\nquery: ${query}\n\ninput: ${JSON.stringify(createWebhookInput)}\n\n`)
-    throw new Error(result.webhookSubscriptionCreate.userErrors)
+    throw new Error(JSON.stringify(result.webhookSubscriptionCreate.userErrors, null, 2))
   }
   return result.webhookSubscriptionCreate
 }
@@ -24,13 +24,15 @@ export async function getWebhooks(shopifyApi) {
     webhookSubscriptions(first:10) {
       edges {
         node {
+          id
           topic
+          callbackUrl
         }
       }
     }
   }`
   const result = await shopifyApi.runQuery(query)
-  return result.webhookSubscriptions.edges
+  return result.webhookSubscriptions
 }
 
 export async function deleteWebhook(shopifyApi, webhookId) {

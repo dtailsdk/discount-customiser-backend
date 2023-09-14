@@ -5,7 +5,6 @@ import { ShopifyToken } from 'models'
 import { createWebhook, getWebhooks, deleteWebhook } from './shopify-api/webhooks'
 
 export async function validateWebhooks(dbShop) {
-  console.log(`Going to validate webhooks for shop ${dbShop.shop}`)
   const appWebhooks = [
     { topic: 'APP_UNINSTALLED', webhookSubscription: { callbackUrl: getEnvironment('SERVER_URL') + '/app/webhooks/app_uninstalled' } },
   ]
@@ -50,9 +49,9 @@ export function verifyShopifyWebhook(secret, req, body) {
  */
 export async function validateAllWebhooks() {
   const dbShops = await ShopifyToken.q
-  console.log(`Found ${dbShops.length} shops to validate`)
   for (let i = 0; i < dbShops.length; i++) {
     const dbShop = dbShops[i]
+    console.log('Going to validate webhooks for shop ' + dbShop.shop)
     try {
       await validateWebhooks(dbShop)
     } catch (e) {
