@@ -1,5 +1,9 @@
 import { ShopifyToken } from 'models'
 
+export function getAppRootUrl(shopName) {
+  return 'https://' + shopName + '.myshopify.com/admin/apps/' + getEnvironment('SHOPIFY_APP_NAME')
+}
+
 export async function deleteShopData(shop) {
   if (shop != null) {
     console.log('Shop exists in DB - going to delete all related data for shop', shop)

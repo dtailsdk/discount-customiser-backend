@@ -2,7 +2,7 @@ import { getEnvironment } from '@dtails/toolbox-backend'
 import { ShopifyToken, VipMerchant } from 'models'
 import { getShopDetails } from '../lib/shopify-api/shop'
 import { getActiveSubscriptions, createSubscription } from './shopify-api/billing'
-import { getAppRootUrl } from '../lib/app'
+import { getAppRootUrl } from '../lib/shop-service'
 
 export async function validatePaymentSubscription(dbShop) {
   console.log('Going to validate payment subscription for shop: ' + dbShop.shop)
