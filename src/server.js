@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/node"; 
 import { Server, Model, ShopifyOAuth } from '@dtails/toolbox-backend'
 import { getEnvironment } from '@dtails/toolbox-backend'
 import {
