@@ -1,5 +1,5 @@
 import { Server, Model } from '@dtails/toolbox-backend'
-import { validateAllPaymentSubscriptions } from '../../lib/billing'
+import { validateAllPaymentSubscriptions } from '../../lib/billing-service'
 
 Server.init({ withCors: false })
 Server.initModel(Model, { debug: false })

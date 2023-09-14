@@ -1,5 +1,5 @@
 import { Server } from '@dtails/toolbox-backend'
-import { createShopifySubscription, approveSubscription } from '../lib/billing'
+import { createShopifySubscription, approveSubscription } from '../lib/billing-service'
 
 async function createRequestedSubscription(req, res) {
   const shop = req.shopFromToken
