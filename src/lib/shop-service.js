@@ -17,15 +17,26 @@ export function getAppScopes() {
 }
 
 export async function getInstalledShop(dbShopName) {
-  const shop = await ShopifyToken.q.findOne({ shop: dbShopName })
-  const scopesUpdated = shop.scope == getAppScopes().join(',')
+  const dbShop = await ShopifyToken.q.findOne({ shop: dbShopName })
+  const scopesUpdated = dbShop.scope == getAppScopes().join(',')
   if (!scopesUpdated) {
     log(`Scopes are NOT up to date for shop ${dbShopName} - going to request confirmation of new scopes`)
   }
+  const shop = getShopForApp(dbShop, dbShopName)
+  shop.appInstalled = (dbShop && scopesUpdated) ? true : false
+  return shop
+}
+
+export async function updateShop(dbShop, showSetupInstructions) {
+  const dbUpdatedShop = await ShopifyToken.q.updateAndFetchById(dbShop.id, { showSetupInstructions })
+  return getShopForApp(dbUpdatedShop, dbUpdatedShop.shop)
+}
+
+function getShopForApp(dbShop, dbShopName) {
   return {
     shop: {
       name: dbShopName
     },
-    appInstalled: (shop && scopesUpdated) ? true : false
+    showSetupInstructions: dbShop ? dbShop.showSetupInstructions : false,
   }
 }

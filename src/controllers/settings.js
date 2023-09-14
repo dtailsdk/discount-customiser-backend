@@ -7,7 +7,7 @@ async function get(req, res) {
   return res.send(dbSettings)
 }
 
-async function post(req, res) {
+async function put(req, res) {
   const dbShop = req.shopFromToken
   const validation = await updateSettings(dbShop, req.body)
   console.log('validation', validation)
@@ -28,7 +28,7 @@ export default function init(shopifyOAuth) {
   router
     .route('/')
     .get(shopifyOAuth.withAuthorizedShop(), get)
-    .put(shopifyOAuth.withAuthorizedShop(), post)
+    .put(shopifyOAuth.withAuthorizedShop(), put)
     .all(Server.middleware.methodNotAllowed)
 
   router

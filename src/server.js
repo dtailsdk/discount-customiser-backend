@@ -13,7 +13,7 @@ Server.init({
   corsBlacklist: ['/', '/app/shopify/auth/confirm', '/app/webhooks/app_uninstalled', '/app/webhooks/customers_redact', '/app/webhooks/customers_data_request', '/app/webhooks/shop_redact', '/favicon.ico'],
   bodyParser: {
     parseRawBody: true,
-    rawBodyUrls: ['/app/webhooks/app_uninstalled', '/app/webhooks/shop_redact', '/app/webhooks/customers_redact', '/app/webhooks/customers_data_request', '/settings'],
+    rawBodyUrls: ['/app/webhooks/app_uninstalled', '/app/webhooks/shop_redact', '/app/webhooks/customers_redact', '/app/webhooks/customers_data_request'],
     type: ['text/plain', 'application/json']
   }
 })
