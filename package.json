@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "nodemon --watch .env --watch knexfile.js --watch .babelrc --watch package.json --watch src src/server.js --exec babel-node",
     "build": "babel src -d dist",
-    "validate-webhooks-job": "npm run build && NODE_ENV=production node dist/scheduled-tasks/validate-webhooks-job.js",
+    "validate-webhooks": "npm run build && NODE_ENV=production node dist/tasks/scheduled/validate-webhooks.js",
+    "get-shopify-webhooks": "npm run build && NODE_ENV=production node dist/tasks/get-shopify-webhooks.js",
     "migrate:latest": "babel-node ./node_modules/.bin/knex migrate:latest",
     "migrate:rollback": "babel-node ./node_modules/.bin/knex migrate:rollback",
     "migrate:make": "babel-node ./node_modules/.bin/knex migrate:make",

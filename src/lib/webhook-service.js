@@ -49,6 +49,7 @@ export function verifyShopifyWebhook(secret, req, body) {
  */
 export async function validateAllWebhooks() {
   const dbShops = await ShopifyToken.q
+  console.log(`Found ${dbShops.length} shops to validate`)
   for (let i = 0; i < dbShops.length; i++) {
     const dbShop = dbShops[i]
     console.log('Going to validate webhooks for shop ' + dbShop.shop)
@@ -58,5 +59,16 @@ export async function validateAllWebhooks() {
       console.log(e)
       Sentry.captureException(e)
     }
+  }
+}
+
+export async function getShopifyWebhooks() {
+  const stores = await ShopifyToken.q
+  console.log(`Going to get and log webhooks for ${stores.length} shops`)
+  for (const store of stores) {
+    const shopifyApi = getApiConnection(store)
+    const webhooks = await getWebhooks(shopifyApi)
+    const displayWebhooks = webhooks.map(wrappedWebhook => wrappedWebhook.node.topic + ' ' + wrappedWebhook.node.endpoint.callbackUrl)
+    console.log(`The store ${store.shop} has ${webhooks.length} webhooks\r\n${displayWebhooks.join('\r\n')}`)
   }
 }

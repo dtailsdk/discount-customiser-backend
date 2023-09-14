@@ -1,5 +1,5 @@
 import { Server, Model } from '@dtails/toolbox-backend'
-import { validateAllWebhooks } from '../lib/webhook-service'
+import { validateAllWebhooks } from '../../lib/webhook-service'
 
 Server.init({ withCors: false })
 Server.initModel(Model, { debug: false })
