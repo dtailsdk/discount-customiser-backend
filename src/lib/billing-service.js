@@ -30,7 +30,7 @@ export async function validatePaymentSubscription(dbShop) {
 
 export async function createShopifySubscription(dbShop) {
   let redirectUrl = getAppRootUrl(dbShop.shop)
-  const subscription = await createShopifySubscriptionRequest(dbShop, { displayName: 'D.TAILS Discount Customiser app subscription', price: 25 })
+  const subscription = await createShopifySubscriptionRequest(dbShop, { displayName: 'D.TAILS Tiered pricing creator app subscription', price: 25 })
   if (subscription.confirmationUrl) {
     redirectUrl = subscription.confirmationUrl
   }
