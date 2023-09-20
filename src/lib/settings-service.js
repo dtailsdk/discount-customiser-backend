@@ -1,5 +1,5 @@
 import { Settings } from 'models'
-import { createDiscountFunction, getDiscountFunction } from './shopify-api/functions'
+import { createDiscountFunction, getDiscountFunction, getDiscountFunctions } from './shopify-api/functions'
 import { updateMetafield } from './shopify-api/metafields'
 
 export const METAFIELD_NAMESPACE = 'dtails'
@@ -28,27 +28,29 @@ export async function getSettings(dbShop) {
 
 export async function updateSettings(dbShop, settings) {
   const validation = validateSettings(settings)
-  let dbSettings = await Settings.q.findOne({ shopifyTokenId: dbShop.id })
   if (validation.valid) {
-    if (dbSettings.shopifyDiscountId) {
-      const metafields = [
-        {
-          ownerId: dbSettings.shopifyDiscountId,
-          key: MINIMUM_CART_METAFIELD_KEY,
-          namespace: METAFIELD_NAMESPACE,
-          type: 'number_integer',
-          value: settings.cartMinimum
-        },
-        {
-          ownerId: dbSettings.shopifyDiscountId,
-          key: DISCOUNT_METAFIELD_KEY,
-          namespace: METAFIELD_NAMESPACE,
-          type: 'number_integer',
-          value: settings.discountPercentage
-        }
-      ]
-      await updateMetafield(dbShop.api(), metafields)
-    } else {
+    const automaticDiscount = await getAutomaticDiscount(dbShop)
+    console.log('found automatic discount', automaticDiscount)
+    await Settings.q.update({ shopifyDiscountId: automaticDiscount.id }).where({ shopifyTokenId: dbShop.id })
+    const metafields = [
+      {
+        ownerId: automaticDiscount.id,
+        key: MINIMUM_CART_METAFIELD_KEY,
+        namespace: METAFIELD_NAMESPACE,
+        type: 'number_integer',
+        value: settings.cartMinimum
+      },
+      {
+        ownerId: automaticDiscount.id,
+        key: DISCOUNT_METAFIELD_KEY,
+        namespace: METAFIELD_NAMESPACE,
+        type: 'number_integer',
+        value: settings.discountPercentage
+      }
+    ]
+    await updateMetafield(dbShop.api(), metafields)
+    /*
+    else {
       const metafields = [
         {
           description: 'Minimum cart value for extra % to be added',
@@ -68,12 +70,24 @@ export async function updateSettings(dbShop, settings) {
       const automaticDiscount = await createDiscountFunction(dbShop.api(), metafields)
       await Settings.q.update({ shopifyDiscountId: automaticDiscount.discountId }).where({ id: dbSettings.id })
     }
-
+*/
     return validation
   } else {
     console.log('Input was not valid', validation)
     return validation
   }
+}
+
+async function getAutomaticDiscount(dbShop) {
+  const automaticDiscounts = await getDiscountFunctions(dbShop.api())
+  console.log('automaticDiscounts', JSON.stringify(automaticDiscounts, null, 2))
+  for (const automaticDiscount of automaticDiscounts) {
+    console.log('automatic discount iteration', JSON.stringify(automaticDiscount, null, 2))
+    if (automaticDiscount.discount.__typename == 'DiscountAutomaticApp' && automaticDiscount.discount.title == 'Tiered pricing' && automaticDiscount.metafields.length > 0 && automaticDiscount.metafields[0].namespace == METAFIELD_NAMESPACE) {
+      return automaticDiscount
+    }
+  }
+  return null
 }
 
 function validateSettings(settings) {

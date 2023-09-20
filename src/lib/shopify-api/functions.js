@@ -8,7 +8,7 @@ export async function createDiscountFunction(shopifyApi, metafields) {
         productDiscounts: false,
         shippingDiscounts: true
       },
-      title: 'Tiered pricing PRUT',
+      title: 'PRUTTELUT',
       metafields: metafields,
       functionId: getEnvironment('SHOPIFY_TIERED_PRICING_ID'),
       startsAt: '2023-09-01T00:00:00'
@@ -62,38 +62,34 @@ export async function getDiscountFunction(shopifyApi, discountNodeId) {
   return result.discountNode
 }
 
-export async function updateDiscountFunction(shopifyApi, id, cartMinimum, discountPercentage) {
-  const input = {
-    id: id,
-    automaticAppDiscount: {
-      combinesWith: {
-        orderDiscounts: false,
-        productDiscounts: false,
-        shippingDiscounts: true
-      },
-      title: 'Tiered pricing',
-      functionId: getEnvironment('SHOPIFY_TIERED_PRICING_ID'),
-      startsAt: '2023-09-01T00:00:00'
-    }
-  }
-  console.log('input', JSON.stringify(input, null, 2))
-  const query = `mutation discountAutomaticAppUpdate($automaticAppDiscount: DiscountAutomaticAppInput!, $id: ID!) {
-    discountAutomaticAppUpdate(automaticAppDiscount: $automaticAppDiscount, id: $id) {
-      automaticAppDiscount {
-        discountId
-      }
-      userErrors {
-        field
-        message
+export async function getDiscountFunctions(shopifyApi, discountNodeId) {
+  const query = `{
+    discountNodes(first: 100) {
+      edges {
+        node {
+          id
+          discount {
+            __typename
+            ... on DiscountAutomaticApp {
+              status
+              title
+            }
+          }
+          metafields(first: 3) {
+            edges {
+              node {
+                id
+                key
+                namespace
+                value
+              }
+            }
+          }
+        }
       }
     }
   }  
   `
-  const result = await shopifyApi.runQuery(query, input)
-  console.log('result', JSON.stringify(result, null, 2))
-  if (result.discountAutomaticAppUpdate.userErrors.length > 0) {
-    console.error(`\n\nAn error occurred when trying to create discount function in Shopify: ${JSON.stringify(result.discountAutomaticAppUpdate.userErrors)}\n\nquery: ${query}\n\ninput: ${JSON.stringify(input)}\n\n`)
-    throw new Error(result.discountAutomaticAppUpdate.userErrors)
-  }
-  return result.discountAutomaticAppUpdate
+  const result = await shopifyApi.runQuery(query)
+  return result.discountNodes
 }
