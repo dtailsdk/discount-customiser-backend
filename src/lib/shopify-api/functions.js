@@ -8,7 +8,7 @@ export async function createDiscountFunction(shopifyApi, metafields) {
         productDiscounts: false,
         shippingDiscounts: true
       },
-      title: 'Tiered pricing',
+      title: 'Tiered pricing PRUT',
       metafields: metafields,
       functionId: getEnvironment('SHOPIFY_TIERED_PRICING_ID'),
       startsAt: '2023-09-01T00:00:00'
