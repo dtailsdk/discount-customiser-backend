@@ -1,13 +1,15 @@
 import { Settings } from 'models'
-import { createDiscountFunction, getDiscountFunction, getDiscountFunctions } from './shopify-api/functions'
+import { getDiscountFunction, getDiscountFunctions } from './shopify-api/functions'
 import { updateMetafield } from './shopify-api/metafields'
 
 export const METAFIELD_NAMESPACE = 'dtails'
 export const MINIMUM_CART_METAFIELD_KEY = 'cart_minimum'
 export const DISCOUNT_METAFIELD_KEY = 'discount_percentage'
+const AUTOMATIC_DISCOUNT_TYPE = 'DiscountAutomaticApp'
+const AUTOMATIC_DISCOUNT_TITLE = 'Tiered pricing'
 
 export async function getSettings(dbShop) {
-  let dbSettings = await Settings.q.findOne({ shopifyTokenId: dbShop.id })
+  const dbSettings = await Settings.q.findOne({ shopifyTokenId: dbShop.id })
   const settings = {
     cartMinimum: 0,
     discountPercentage: 0,
@@ -29,19 +31,25 @@ export async function getSettings(dbShop) {
 export async function updateSettings(dbShop, settings) {
   const validation = validateSettings(settings)
   if (validation.valid) {
-    const automaticDiscount = await getAutomaticDiscount(dbShop)
-    console.log('found automatic discount', automaticDiscount)
-    await Settings.q.update({ shopifyDiscountId: automaticDiscount.id }).where({ shopifyTokenId: dbShop.id })
+    let automaticDiscountId = null
+    const dbSettings = await Settings.q.findOne({ shopifyTokenId: dbShop.id })
+    if (dbSettings.shopifyDiscountId == null) {
+      const automaticDiscount = await getAutomaticDiscount(dbShop)
+      await Settings.q.update({ shopifyDiscountId: automaticDiscount.id }).where({ shopifyTokenId: dbShop.id })
+      automaticDiscountId = automaticDiscount.id
+    } else {
+      automaticDiscountId = dbSettings.automaticDiscount
+    }
     const metafields = [
       {
-        ownerId: automaticDiscount.id,
+        ownerId: automaticDiscountId,
         key: MINIMUM_CART_METAFIELD_KEY,
         namespace: METAFIELD_NAMESPACE,
         type: 'number_integer',
         value: settings.cartMinimum
       },
       {
-        ownerId: automaticDiscount.id,
+        ownerId: automaticDiscountId,
         key: DISCOUNT_METAFIELD_KEY,
         namespace: METAFIELD_NAMESPACE,
         type: 'number_integer',
@@ -49,28 +57,6 @@ export async function updateSettings(dbShop, settings) {
       }
     ]
     await updateMetafield(dbShop.api(), metafields)
-    /*
-    else {
-      const metafields = [
-        {
-          description: 'Minimum cart value for extra % to be added',
-          key: MINIMUM_CART_METAFIELD_KEY,
-          namespace: METAFIELD_NAMESPACE,
-          type: 'number_integer',
-          value: settings.cartMinimum
-        },
-        {
-          description: 'Discount percent to apply if minimum is met',
-          key: DISCOUNT_METAFIELD_KEY,
-          namespace: METAFIELD_NAMESPACE,
-          type: 'number_integer',
-          value: settings.discountPercentage
-        }
-      ]
-      const automaticDiscount = await createDiscountFunction(dbShop.api(), metafields)
-      await Settings.q.update({ shopifyDiscountId: automaticDiscount.discountId }).where({ id: dbSettings.id })
-    }
-*/
     return validation
   } else {
     console.log('Input was not valid', validation)
@@ -80,10 +66,8 @@ export async function updateSettings(dbShop, settings) {
 
 async function getAutomaticDiscount(dbShop) {
   const automaticDiscounts = await getDiscountFunctions(dbShop.api())
-  console.log('automaticDiscounts', JSON.stringify(automaticDiscounts, null, 2))
   for (const automaticDiscount of automaticDiscounts) {
-    console.log('automatic discount iteration', JSON.stringify(automaticDiscount, null, 2))
-    if (automaticDiscount.discount.__typename == 'DiscountAutomaticApp' && automaticDiscount.discount.title == 'Tiered pricing' && automaticDiscount.metafields.length > 0 && automaticDiscount.metafields[0].namespace == METAFIELD_NAMESPACE) {
+    if (automaticDiscount.discount.__typename == AUTOMATIC_DISCOUNT_TYPE && automaticDiscount.discount.title == AUTOMATIC_DISCOUNT_TITLE && automaticDiscount.metafields.length > 0 && automaticDiscount.metafields[0].namespace == METAFIELD_NAMESPACE) {
       return automaticDiscount
     }
   }
