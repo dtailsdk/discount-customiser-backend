@@ -64,35 +64,40 @@ export async function updateSettings(dbShop, settings) {
       } else {
         console.log('The automatic discount exists - going to update metafield values')
         automaticDiscountId = automaticDiscount.id
-        const metafields = [
-          {
-            ownerId: automaticDiscountId,
-            key: MINIMUM_CART_METAFIELD_KEY,
-            namespace: METAFIELD_NAMESPACE,
-            type: 'number_integer',
-            value: settings.cartMinimum
-          },
-          {
-            ownerId: automaticDiscountId,
-            key: DISCOUNT_METAFIELD_KEY,
-            namespace: METAFIELD_NAMESPACE,
-            type: 'number_integer',
-            value: settings.discountPercentage
-          }
-        ]
-        await updateMetafield(dbShop.api(), metafields)
+        await updateDiscountMetafields(dbShop, automaticDiscountId, settings)
       }
       console.log('Going to persist automatic discount id')
       await Settings.q.update({ shopifyDiscountId: automaticDiscountId }).where({ shopifyTokenId: dbShop.id })
     } else {
-      console.log('The automatic discount exists and id was already persisted')
+      console.log('The automatic discount exists and id was already persisted - going to update metafield values')
       automaticDiscountId = dbSettings.shopifyDiscountId
+      await updateDiscountMetafields(dbShop, automaticDiscountId, settings)
     }
     return validation
   } else {
     console.log('Input was not valid', validation)
     return validation
   }
+}
+
+async function updateDiscountMetafields(dbShop, automaticDiscountId, settings) {
+  const metafields = [
+    {
+      ownerId: automaticDiscountId,
+      key: MINIMUM_CART_METAFIELD_KEY,
+      namespace: METAFIELD_NAMESPACE,
+      type: 'number_integer',
+      value: settings.cartMinimum
+    },
+    {
+      ownerId: automaticDiscountId,
+      key: DISCOUNT_METAFIELD_KEY,
+      namespace: METAFIELD_NAMESPACE,
+      type: 'number_integer',
+      value: settings.discountPercentage
+    }
+  ]
+  await updateMetafield(dbShop.api(), metafields)
 }
 
 async function getAutomaticDiscount(dbShop) {
