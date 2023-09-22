@@ -102,6 +102,7 @@ async function updateDiscountMetafields(dbShop, automaticDiscountId, settings) {
 
 async function getAutomaticDiscount(dbShop) {
   const automaticDiscounts = await getDiscountFunctions(dbShop.api())
+  console.log('automaticDiscounts', JSON.stringify(automaticDiscounts, null, 2))
   for (const automaticDiscount of automaticDiscounts) {
     if (automaticDiscount.discount.__typename == AUTOMATIC_DISCOUNT_TYPE && automaticDiscount.discount.title == AUTOMATIC_DISCOUNT_TITLE && automaticDiscount.metafields.length > 0 && automaticDiscount.metafields[0].namespace == METAFIELD_NAMESPACE) {
       return automaticDiscount
