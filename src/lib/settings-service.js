@@ -1,5 +1,5 @@
 import { Settings } from 'models'
-import { getDiscountFunction, getDiscountFunctions } from './shopify-api/functions'
+import { getDiscountFunction, getDiscountFunctions, createDiscountFunction } from './shopify-api/functions'
 import { updateMetafield } from './shopify-api/metafields'
 
 export const METAFIELD_NAMESPACE = 'dtails'
@@ -28,35 +28,66 @@ export async function getSettings(dbShop) {
   return settings
 }
 
+/**
+ * There seems to be something buggy about discount functions - sometimes the automatic discount already exist
+ * after install, and sometimes it does not.
+ * The code below handles both cases
+ */
 export async function updateSettings(dbShop, settings) {
   const validation = validateSettings(settings)
   if (validation.valid) {
     let automaticDiscountId = null
     const dbSettings = await Settings.q.findOne({ shopifyTokenId: dbShop.id })
     if (dbSettings.shopifyDiscountId == null) {
-      const automaticDiscount = await getAutomaticDiscount(dbShop)
-      await Settings.q.update({ shopifyDiscountId: automaticDiscount.id }).where({ shopifyTokenId: dbShop.id })
-      automaticDiscountId = automaticDiscount.id
-    } else {
-      automaticDiscountId = dbSettings.automaticDiscount
-    }
-    const metafields = [
-      {
-        ownerId: automaticDiscountId,
-        key: MINIMUM_CART_METAFIELD_KEY,
-        namespace: METAFIELD_NAMESPACE,
-        type: 'number_integer',
-        value: settings.cartMinimum
-      },
-      {
-        ownerId: automaticDiscountId,
-        key: DISCOUNT_METAFIELD_KEY,
-        namespace: METAFIELD_NAMESPACE,
-        type: 'number_integer',
-        value: settings.discountPercentage
+      let automaticDiscount = await getAutomaticDiscount(dbShop)
+      console.log('automaticDiscount', automaticDiscount)
+      if (automaticDiscount == null) {
+        console.log('The automatic discount does not exist - going to create automatic discount')
+        const metafields = [
+          {
+            description: 'Minimum cart value to enable discount percentage to be applied',
+            key: MINIMUM_CART_METAFIELD_KEY,
+            namespace: METAFIELD_NAMESPACE,
+            type: 'number_integer',
+            value: settings.cartMinimum
+          },
+          {
+            description: 'Discount percentage to apply if minimum cart amountis met',
+            key: DISCOUNT_METAFIELD_KEY,
+            namespace: METAFIELD_NAMESPACE,
+            type: 'number_integer',
+            value: settings.discountPercentage
+          }
+        ]
+        automaticDiscount = await createDiscountFunction(dbShop, metafields)
+        automaticDiscountId = automaticDiscount.discountId
+      } else {
+        console.log('The automatic discount exists - going to update metafield values')
+        automaticDiscountId = automaticDiscount.id
+        const metafields = [
+          {
+            ownerId: automaticDiscountId,
+            key: MINIMUM_CART_METAFIELD_KEY,
+            namespace: METAFIELD_NAMESPACE,
+            type: 'number_integer',
+            value: settings.cartMinimum
+          },
+          {
+            ownerId: automaticDiscountId,
+            key: DISCOUNT_METAFIELD_KEY,
+            namespace: METAFIELD_NAMESPACE,
+            type: 'number_integer',
+            value: settings.discountPercentage
+          }
+        ]
+        await updateMetafield(dbShop.api(), metafields)
       }
-    ]
-    await updateMetafield(dbShop.api(), metafields)
+      console.log('Going to persist automatic discount id')
+      await Settings.q.update({ shopifyDiscountId: automaticDiscountId }).where({ shopifyTokenId: dbShop.id })
+    } else {
+      console.log('The automatic discount exists and id was already persisted')
+      automaticDiscountId = dbSettings.shopifyDiscountId
+    }
     return validation
   } else {
     console.log('Input was not valid', validation)
