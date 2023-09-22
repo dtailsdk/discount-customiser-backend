@@ -1,6 +1,6 @@
 import { getEnvironment } from '@dtails/toolbox-backend'
 
-export async function createDiscountFunction(shopifyApi, metafields) {
+export async function createDiscountFunction(shopifyApi, title, metafields) {
   const input = {
     automaticAppDiscount: {
       combinesWith: {
@@ -8,7 +8,7 @@ export async function createDiscountFunction(shopifyApi, metafields) {
         productDiscounts: false,
         shippingDiscounts: true
       },
-      title: 'D.TAILS Tiered pricing creator (do not delete)',
+      title: title,
       metafields: metafields,
       functionId: getEnvironment('SHOPIFY_TIERED_PRICING_ID'),
       startsAt: '2023-09-01T00:00:00'

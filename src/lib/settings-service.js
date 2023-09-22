@@ -6,7 +6,7 @@ export const METAFIELD_NAMESPACE = 'dtails'
 export const MINIMUM_CART_METAFIELD_KEY = 'cart_minimum'
 export const DISCOUNT_METAFIELD_KEY = 'discount_percentage'
 const AUTOMATIC_DISCOUNT_TYPE = 'DiscountAutomaticApp'
-const AUTOMATIC_DISCOUNT_TITLE = 'Tiered pricing'
+const AUTOMATIC_DISCOUNT_TITLE = 'D.TAILS Tiered pricing creator (do not delete)'
 
 export async function getSettings(dbShop) {
   const dbSettings = await Settings.q.findOne({ shopifyTokenId: dbShop.id })
@@ -59,7 +59,7 @@ export async function updateSettings(dbShop, settings) {
             value: settings.discountPercentage
           }
         ]
-        automaticDiscount = await createDiscountFunction(dbShop.api(), metafields)
+        automaticDiscount = await createDiscountFunction(dbShop.api(), AUTOMATIC_DISCOUNT_TITLE, metafields)
         automaticDiscountId = automaticDiscount.discountId
       } else {
         console.log('The automatic discount exists - going to update metafield values')
