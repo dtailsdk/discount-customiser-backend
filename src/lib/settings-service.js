@@ -59,7 +59,7 @@ export async function updateSettings(dbShop, settings) {
             value: settings.discountPercentage
           }
         ]
-        automaticDiscount = await createDiscountFunction(dbShop, metafields)
+        automaticDiscount = await createDiscountFunction(dbShop.api(), metafields)
         automaticDiscountId = automaticDiscount.discountId
       } else {
         console.log('The automatic discount exists - going to update metafield values')
