@@ -66,7 +66,7 @@ export async function getShopifyWebhooks() {
   console.log(`Going to get and log webhooks for ${dbShops.length} shops`)
   for (const dbShop of dbShops) {
     const webhooks = await getWebhooks(dbShop.api())
-    const displayWebhooks = webhooks.map(webhook => webhook.topic + ' ' + webhook.endpoint.callbackUrl)
+    const displayWebhooks = webhooks.map(webhook => webhook.topic + ' ' + webhook.callbackUrl)
     console.log(`The store ${dbShop.shop} has ${webhooks.length} webhooks\r\n${displayWebhooks.join('\r\n')}`)
   }
 }
