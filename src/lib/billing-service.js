@@ -51,7 +51,7 @@ async function getSubscriptionFromShopify(shopifyApi) {
 async function getVipMerchant(dbShop) {
   const vipMerchants = await VipMerchant.q
   for (let i = 0; i < vipMerchants.length; i++) {
-    if (vipMerchants[i].dbShop === dbShop.shop) {
+    if (vipMerchants[i].shop === dbShop.shop) {
       return vipMerchants[i]
     }
   }
