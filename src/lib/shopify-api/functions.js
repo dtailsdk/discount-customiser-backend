@@ -4,8 +4,8 @@ export async function createDiscountFunction(shopifyApi, title, metafields) {
   const input = {
     automaticAppDiscount: {
       combinesWith: {
-        orderDiscounts: false,
-        productDiscounts: false,
+        orderDiscounts: true,
+        productDiscounts: true,
         shippingDiscounts: true
       },
       title: title,
@@ -92,4 +92,35 @@ export async function getDiscountFunctions(shopifyApi) {
   `
   const result = await shopifyApi.runQuery(query)
   return result.discountNodes
+}
+
+export async function updateDiscountFunction(shopifyApi, gid) {
+  const input = {
+    id: gid,
+    automaticAppDiscount: {
+      combinesWith: {
+        orderDiscounts: true,
+        productDiscounts: true,
+        shippingDiscounts: true
+      }
+    }
+  }
+  const query = `mutation discountAutomaticAppUpdate($automaticAppDiscount: DiscountAutomaticAppInput!, $id: ID!) {
+    discountAutomaticAppUpdate(automaticAppDiscount: $automaticAppDiscount, id: $id) {
+      automaticAppDiscount {
+        discountId
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }  
+  `
+  const result = await shopifyApi.runQuery(query, input)
+  if (result.discountAutomaticAppUpdate.userErrors.length > 0) {
+    console.error(`\n\nAn error occurred when trying to update discount function in Shopify: ${JSON.stringify(result.discountAutomaticAppUpdate.userErrors)}\n\nquery: ${query}\n\ninput: ${JSON.stringify(input)}\n\n`)
+    throw new Error(result.discountAutomaticAppUpdate.userErrors)
+  }
+  return result.discountAutomaticAppUpdate.automaticAppDiscount
 }

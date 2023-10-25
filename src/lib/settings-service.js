@@ -1,5 +1,5 @@
-import { Settings } from 'models'
-import { getDiscountFunction, getDiscountFunctions, createDiscountFunction } from './shopify-api/functions'
+import { Settings, ShopifyToken } from 'models'
+import { getDiscountFunction, getDiscountFunctions, createDiscountFunction, updateDiscountFunction } from './shopify-api/functions'
 import { updateMetafield } from './shopify-api/metafields'
 
 export const METAFIELD_NAMESPACE = 'dtails'
@@ -126,4 +126,13 @@ function validateSettings(settings) {
     validation.valid = false
   }
   return validation
+}
+
+export async function migrateAllowOtherDiscounts() {
+  const dbShops = await ShopifyToken.q
+  for (const dbShop of dbShops) {
+    console.log(`Going to update function for shop ${dbShop.shop}`)
+    const dbSettings = await Settings.q.findOne({ shopifyTokenId: dbShop.id })
+    await updateDiscountFunction(dbShop.api(), dbSettings.shopifyDiscountId)
+  }
 }

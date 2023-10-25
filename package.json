@@ -8,6 +8,7 @@
     "validate-webhooks": "npm run build && NODE_ENV=production node dist/tasks/scheduled/validate-webhooks.js",
     "validate-payments": "npm run build && NODE_ENV=production node dist/tasks/scheduled/validate-payments.js",
     "get-shopify-webhooks": "npm run build && NODE_ENV=production node dist/tasks/get-shopify-webhooks.js",
+    "migrate-allow-other-discounts": "npm run build && NODE_ENV=production node dist/tasks/migrate-allow-other-discounts.js",
     "migrate:latest": "babel-node ./node_modules/.bin/knex migrate:latest",
     "migrate:rollback": "babel-node ./node_modules/.bin/knex migrate:rollback",
     "migrate:make": "babel-node ./node_modules/.bin/knex migrate:make",
